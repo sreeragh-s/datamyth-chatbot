@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>This is the data myth page</title>
+    </head>
+    <body style="background-color: black;">
+    <script>
+     localStorage.setItem('type', 'GA4');
+     localStorage.setItem('channel_id', '61cd6644714a91c5fddd500b');
+     localStorage.setItem('account_id', '421612556');
+     localStorage.setItem('account_name', 'Blockware Solutions Website');
+     localStorage.setItem('property_name', 'Blockware Solutions');
+    </script>
+    <script>
+        let sessionId = localStorage.getItem('sessionId');
+        if (!sessionId) {
+            sessionId = 'cf_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('sessionId', sessionId);
+        }
+        let type = localStorage.getItem('type');
+        let channel_id = localStorage.getItem('channel_id');
+        let account_id = localStorage.getItem('account_id');
+        let account_name = localStorage.getItem('account_name');
+        let property_name = localStorage.getItem('property_name');
+
+        const iframe = document.createElement("iframe")
+        const iframeStyles = (styleString) => {
+            const style = document.createElement("style");
+            style.textContent = styleString;
+            document.head.append(style);
+        }
+        iframeStyles(`.data-myth {
+            position: fixed;
+            bottom: 20px;
+            border: none;
+            right: 20px;
+        }`)
+        iframe.src = "http://localhost:3001/iframe"
+        iframe.classList.add("data-myth")
+        document.body.append(iframe)
+        window.addEventListener("message", (e) => {
+            if (e.origin !== "http://localhost:3001") return null;
+            let dimensions = e.data;
+            iframe.width = dimensions.width;
+            iframe.height = dimensions.height;
+            iframe.contentWindow.postMessage({
+                type: "INIT",
+                sessionId: sessionId,
+                type: type,
+                channel_id: channel_id,
+                account_id: account_id,
+                account_name: account_name,
+                property_name: property_name,
+                domain: window.location.origin
+            }, "http://localhost:3001")
+        })
+
+        </script>
+        </body>
+    </html>
