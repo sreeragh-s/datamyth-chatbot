@@ -7,15 +7,14 @@ export async function POST(req: Request) {
   const body = await req.json()
   const { messages, channelId, accountId } = body
   const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
+
 
   const result = streamText({
     model: google('gemini-1.5-flash'),
     messages: [
       {
         role: "system",
-        content: SYSTEM_PROMPT + `\n\nCurrent date information:\n- Current Month: ${currentMonth + 1}\n- Current Year: ${currentYear}`,
+        content: SYSTEM_PROMPT + `\n\nCurrent date information is:\n ${currentDate} ` ,
       },
       ...convertToCoreMessages(messages),
     ],
@@ -27,13 +26,38 @@ export async function POST(req: Request) {
           type: z.enum(['GA4'])
             .default('GA4')
             .describe("The platform to fetch data from"),
-          startDate: z.string().default("2024-1-1").describe("Start date in YYYY-MM-DD format"),
-          endDate: z.string().default("2024-1-25").describe("End date in YYYY-MM-DD format"),
-          startDate2: z.string().default("2024-2-1").describe("Compare start date (optional)").optional(),
-          endDate2: z.string().default("2024-2-25").describe("Compare end date (optional)").optional(),
-          metrics: z.array(z.string()).default(['newUsers']).describe("Metrics to fetch"),
-          dimensions: z.array(z.string()).default(['country']).describe("Dimensions to fetch"),
-        }),
+          startDate: z.string()
+            .default(`${currentDate}`)
+            .describe("Start date in YYYY-MM-DD format"),
+          endDate: z.string()
+            .default(`${currentDate}`)
+            .describe("End date in YYYY-MM-DD format"),
+          startDate2: z.string()
+            .default("2024-2-1")
+            .describe("Compare start date (optional)")
+            .optional(),
+          endDate2: z.string()
+            .default("2024-2-1")
+            .describe("Compare end date (optional)")
+            .optional(),
+          metrics: z.array(z.string()).default([]).describe("Metrics to fetch"),
+          dimensions: z.array(z.string()).default([]).describe("Dimensions to fetch").optional(),
+        }).refine(
+          (data) => {
+            const start = new Date(data.startDate);
+            const end = new Date(data.endDate);
+            if (data.startDate2 && data.endDate2) {
+              const start2 = new Date(data.startDate2);
+              const end2 = new Date(data.endDate2);
+              return start <= end && start2 <= end2;
+            }
+            return start <= end;
+          },
+          {
+            message: "End dates must be more recent than or equal to start dates",
+            path: ["endDate"],
+          }
+        ),
         execute: async ({ type, startDate, endDate, startDate2, endDate2, metrics, dimensions }) => {
           console.log('Analytics Tool Execution - Input Parameters:', JSON.stringify({
             type,
@@ -95,7 +119,7 @@ export async function POST(req: Request) {
   return result.toDataStreamResponse()
 }
 
-const SYSTEM_PROMPT = `You are a helpful AI assistant for a SaaS app called Datamyth which is an analytics platform to track your user engagement from your websites and social media.
+const SYSTEM_PROMPT = `You are a helpful AI assistant for a SaaS app called Datamyth which is an analytics platform to track your user engagement from your websites and social media the.
 
 You are given a question and you need to answer it based on the information provided in the context.
 
@@ -104,7 +128,7 @@ You are given a question and you need to answer it based on the information prov
 these are some other metrics and dimensions you can use to call the tool that is used for the analytics and use comparision only when user prompts you to do so and startdate2 and enddate2 are optional  based on requiremernt :
 
 
-metrics
+metrics 
 
 active1DayUsers -	1-day active users	The number of distinct active users on your site or app within a 1 day period. The 1 day period includes the last day in the report's date range. Note: this is the same as Active Users.					
 active28DayUsers -	28-day active users	The number of distinct active users on your site or app within a 28 day period. The 28 day period includes the last day in the report's date range.					
@@ -294,3 +318,4 @@ sessionSource -	Session source	The source that initiated a session on your websi
 ".
 
 `
+

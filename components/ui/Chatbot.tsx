@@ -50,7 +50,7 @@ export default function ChatBot(props: ChatProps ) {
   const isDefaultWindow = defaultConfig.chatWindowColor === 'default'
 
   return (
-    <div className={`w-full h-full rounded-md mx-auto`}>
+    <div className={`w-full h-full rounded-md mx-auto z-20`}>
       <div
         className={`flex gap-4 rounded-t-md px-6 py-4 items-center border ${
           isDefaultHeader ? `border-b border-border` : 'border border-border'

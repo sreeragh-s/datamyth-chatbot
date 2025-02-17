@@ -3,7 +3,7 @@
     <head>
         <title>This is the data myth page</title>
     </head>
-    <body style="background-color: black;">
+    <body style="background-color: white;">
     <script>
      localStorage.setItem('type', 'GA4');
      localStorage.setItem('channel_id', '61cd6644714a91c5fddd500b');
@@ -12,10 +12,12 @@
      localStorage.setItem('property_name', 'Blockware Solutions');
     </script>
     <script>
+        console.log('Session check - existing sessionId:', localStorage.getItem('sessionId'));
         let sessionId = localStorage.getItem('sessionId');
         if (!sessionId) {
             sessionId = 'cf_' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('sessionId', sessionId);
+            console.log('Created new sessionId:', sessionId);
         }
         let type = localStorage.getItem('type');
         let channel_id = localStorage.getItem('channel_id');
@@ -23,8 +25,18 @@
         let account_name = localStorage.getItem('account_name');
         let property_name = localStorage.getItem('property_name');
 
+        console.log('Retrieved values from localStorage:', {
+            type,
+            channel_id,
+            account_id,
+            account_name,
+            property_name
+        });
+
         const iframe = document.createElement("iframe")
+        console.log('Created iframe element');
         const iframeStyles = (styleString) => {
+            console.log('Applying styles:', styleString);
             const style = document.createElement("style");
             style.textContent = styleString;
             document.head.append(style);
@@ -38,21 +50,42 @@
         iframe.src = "http://localhost:3001/iframe"
         iframe.classList.add("data-myth")
         document.body.append(iframe)
+        console.log('Iframe added to document body');
         window.addEventListener("message", (e) => {
-            if (e.origin !== "http://localhost:3001") return null;
+            console.log('Received message from:', e.origin, 'Data:', e.data);
+            
+            if (!e.source || e.source !== iframe.contentWindow) {
+                console.log('Message not from expected iframe source');
+                return;
+            }
+
+            if (e.origin !== "http://localhost:3001") {
+                console.log('Message origin not allowed:', e.origin);
+                return;
+            }
+
             let dimensions = e.data;
+            if (!dimensions || typeof dimensions.width === 'undefined' || typeof dimensions.height === 'undefined') {
+                console.log('Invalid dimensions received:', dimensions);
+                return;
+            }
+
+            console.log('Setting iframe dimensions:', dimensions);
             iframe.width = dimensions.width;
             iframe.height = dimensions.height;
-            iframe.contentWindow.postMessage({
+
+            const messageData = {
                 type: "INIT",
-                sessionId: sessionId,
-                type: type,
-                channel_id: channel_id,
-                account_id: account_id,
-                account_name: account_name,
-                property_name: property_name,
+                sessionId,
+                analyticsType: type,
+                channel_id,
+                account_id,
+                account_name,
+                property_name,
                 domain: window.location.origin
-            }, "http://localhost:3001")
+            };
+            console.log('Sending postMessage to iframe:', messageData);
+            iframe.contentWindow.postMessage(messageData, "http://localhost:3001")
         })
 
         </script>

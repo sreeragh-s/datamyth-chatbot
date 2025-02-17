@@ -18,7 +18,6 @@ export default function ChatFrame() {
   }
 
   useEffect(() => {
-    // Send initial size to parent
     postToParent({
       width: 100,
       height: 100,
@@ -39,11 +38,10 @@ export default function ChatFrame() {
     return () => window.removeEventListener("message", handleMessage)
   }, [])
 
-  // Update iframe size when chat opens/closes
   useEffect(() => {
     postToParent({
       width: isOpen ? 470 : 100,
-      height: isOpen ? 700 : 100,
+      height: isOpen ? 800 : 100,
     })
   }, [isOpen])
 
@@ -51,7 +49,7 @@ export default function ChatFrame() {
     <div className="bg-transparent fixed bottom-4 right-4">
       {isOpen && (
         <div 
-          className="absolute bottom-24 right-0 w-[450px] h-[640px] rounded-lg shadow-lg bg-background"
+          className="absolute bottom-40 right-0 w-[400px] h-[600px] rounded-lg "
         >
           <div className="h-full">
             {sessionId && type && channelId && accountId && accountName && propertyName  && (
