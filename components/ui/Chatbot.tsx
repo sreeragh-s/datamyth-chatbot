@@ -35,6 +35,23 @@ export default function ChatBot(props: ChatProps ) {
       channelId: props.channelId,
       accountId: props.accountId,
       sessionId: props.session
+    },
+    onFinish: async (message) => {
+      try {
+        // Store the assistant's message
+        await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: props.session,
+            messages: [message] // This will be the assistant's message
+          }),
+        });
+      } catch (error) {
+        console.error('Error storing assistant message:', error);
+      }
     }
   })
   

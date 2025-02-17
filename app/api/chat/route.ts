@@ -16,15 +16,19 @@ export async function POST(req: Request) {
     if (sessionId) {
       console.log('Session ID:', sessionId);
       try {
-        await Conversation.findOneAndUpdate(
-          { sessionId },
-          { 
-            $push: { messages: messages[messages.length - 1] },
-            $setOnInsert: { createdAt: new Date() },
-            $set: { updatedAt: new Date() }
-          },
-          { upsert: true }
-        );
+        // Ensure the message has a role field
+        const messageToStore = messages[messages.length - 1];
+        if (messageToStore && (messageToStore.role === 'user' || messageToStore.role === 'assistant')) {
+          await Conversation.findOneAndUpdate(
+            { sessionId },
+            { 
+              $push: { messages: messageToStore }, // Store the complete message object including role
+              $setOnInsert: { createdAt: new Date() },
+              $set: { updatedAt: new Date() }
+            },
+            { upsert: true }
+          );
+        }
       } catch (error) {
         console.error('Error storing message:', error);
         return new Response('Internal Server Error', { status: 500 });
