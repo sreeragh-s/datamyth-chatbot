@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { useChat, type UseChatOptions } from "ai/react"
 import { Chat } from "@/components/ui/chat"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -27,13 +28,35 @@ export default function ChatBot(props: ChatProps ) {
     append,
     stop,
     isLoading,
+    setMessages
   } = useChat({
     initialMessages: props.initialMessages,
     body: {
-      channelId: "61cd6644714a91c5fddd500b",
-      accountId: "421612556",
+      channelId: props.channelId,
+      accountId: props.accountId,
+      sessionId: props.session
     }
   })
+  
+  // Load chat history when component mounts
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const response = await fetch(`/api/chat?sessionId=${props.session}`);
+        console.log('Loading chat history for session:', props.session);
+        if (response.ok) {
+          const history = await response.json();
+          if (history && history.length > 0) {
+            setMessages(history);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+      }
+    };
+
+    loadChatHistory();
+  }, [props.session, setMessages]);
   
   const defaultConfig = {
     headerBgColor: 'default',

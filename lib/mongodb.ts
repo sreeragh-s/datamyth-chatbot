@@ -4,12 +4,24 @@ if (!process.env.MONGODB_URI) {
   throw new Error('Please add your Mongo URI to .env.local')
 }
 
+let cachedConnection: typeof mongoose | null = null;
+
 export const connectDB = async () => {
+  if (cachedConnection) {
+    return cachedConnection;
+  }
+
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI as string);
+    const opts = {
+      bufferCommands: false,
+    };
+
+    const conn = await mongoose.connect(process.env.MONGODB_URI as string, opts);
+    cachedConnection = conn;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
-    process.exit(1);
+    throw error; 
   }
 }; 
