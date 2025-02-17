@@ -4,6 +4,8 @@ import { useEffect } from "react"
 import { useChat, type UseChatOptions } from "ai/react"
 import { Chat } from "@/components/ui/chat"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { PlusIcon } from "lucide-react"
+import { Button } from "./button"
 
 
 type ChatProps = {
@@ -55,6 +57,18 @@ export default function ChatBot(props: ChatProps ) {
     }
   })
   
+
+  const handleRefreshSession = () => {
+    const newSessionId = 'cf_' + Math.random().toString(36).substr(2, 9);
+    // Clear the chat messages
+    setMessages([]);
+    // Post message to parent window to update session
+    window.parent.postMessage({
+      type: "REFRESH_SESSION",
+      sessionId: newSessionId
+    }, "*");
+  };
+
   // Load chat history when component mounts
   useEffect(() => {
     const loadChatHistory = async () => {
@@ -78,7 +92,7 @@ export default function ChatBot(props: ChatProps ) {
   const defaultConfig = {
     headerBgColor: 'default',
     chatWindowColor: 'default',
-    chatbotName: 'DataMyth - Buddy',
+    chatbotName: 'Buddy',
     avatarIcon: "https://www.datamyth.com/wp-content/uploads/2021/05/Header-Logo.png",
     defaultSuggestions: [
       { name: 'What is the Google Analytics?' },
@@ -92,12 +106,13 @@ export default function ChatBot(props: ChatProps ) {
   return (
     <div className={`w-full h-full rounded-md mx-auto z-20`}>
       <div
-        className={`flex gap-4 rounded-t-md px-6 py-4 items-center border ${
+        className={`flex gap-4 rounded-t-md px-6 py-4 items-center border justify-between ${
           isDefaultHeader ? `border-b border-border` : 'border border-border'
         }`}
         style={{
           backgroundColor: isDefaultHeader ? 'white' : defaultConfig.headerBgColor,
         }}>
+          <div>
         <div>
           <Avatar className="w-12 h-12">
             <AvatarImage 
@@ -111,6 +126,10 @@ export default function ChatBot(props: ChatProps ) {
         <h1 className="text-lg font-bold text-black">
           {defaultConfig.chatbotName}
         </h1>
+        </div>
+        <Button variant="outline" size="icon" onClick={handleRefreshSession}>  
+            <PlusIcon className="w-4 h-4" />
+        </Button>
       </div>
 
       <div

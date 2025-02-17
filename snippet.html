@@ -64,6 +64,28 @@
                 return;
             }
 
+            // Handle session refresh
+            if (e.data.type === "REFRESH_SESSION") {
+                sessionId = e.data.sessionId;
+                localStorage.setItem('sessionId', sessionId);
+                console.log('Session ID refreshed:', sessionId);
+                
+                // Resend initialization data with new session ID
+                const messageData = {
+                    type: "INIT",
+                    sessionId,
+                    analyticsType: type,
+                    channel_id,
+                    account_id,
+                    account_name,
+                    property_name,
+                    domain: window.location.origin
+                };
+                iframe.contentWindow.postMessage(messageData, "http://localhost:3001");
+                return;
+            }
+
+            // Handle dimension updates
             let dimensions = e.data;
             if (!dimensions || typeof dimensions.width === 'undefined' || typeof dimensions.height === 'undefined') {
                 console.log('Invalid dimensions received:', dimensions);

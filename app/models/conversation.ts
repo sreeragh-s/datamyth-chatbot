@@ -12,6 +12,11 @@ const conversationSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  channelId: {
+    type: String,
+    required: true,
+    index: true
+  },
   messages: [messageSchema],
   createdAt: {
     type: Date,

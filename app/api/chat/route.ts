@@ -157,12 +157,18 @@ export async function GET(req: Request) {
     
     const { searchParams } = new URL(req.url);
     const sessionId = searchParams.get('sessionId');
+    const channelId = searchParams.get('channelId');
 
     if (!sessionId) {
       return new Response('Session ID is required', { status: 400 });
     }
 
-    const conversation = await Conversation.findOne({ sessionId });
+    const query = { sessionId };
+    if (channelId) {
+      Object.assign(query, { channelId });
+    }
+
+    const conversation = await Conversation.findOne(query);
     return new Response(JSON.stringify(conversation?.messages || []), {
       headers: { 'Content-Type': 'application/json' },
     });
