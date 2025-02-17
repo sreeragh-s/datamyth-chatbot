@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { useChat, type UseChatOptions } from "ai/react"
 import { Chat } from "@/components/ui/chat"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { PlusIcon } from "lucide-react"
+import { History, PlusIcon } from "lucide-react"
 import { Button } from "./button"
 
 
@@ -69,6 +69,10 @@ export default function ChatBot(props: ChatProps ) {
     }, "*");
   };
 
+  const handleHistoryClick = () => {
+    console.log('History clicked');
+  };
+
   // Load chat history when component mounts
   useEffect(() => {
     const loadChatHistory = async () => {
@@ -112,7 +116,7 @@ export default function ChatBot(props: ChatProps ) {
         style={{
           backgroundColor: isDefaultHeader ? 'white' : defaultConfig.headerBgColor,
         }}>
-          <div>
+          <div className="flex items-center gap-2">
         <div>
           <Avatar className="w-12 h-12">
             <AvatarImage 
@@ -127,9 +131,14 @@ export default function ChatBot(props: ChatProps ) {
           {defaultConfig.chatbotName}
         </h1>
         </div>
+        <div className="flex gap-2">
+        <Button variant="outline" size="icon" onClick={handleHistoryClick}>  
+            <History className="w-4 h-4" />
+        </Button>
         <Button variant="outline" size="icon" onClick={handleRefreshSession}>  
             <PlusIcon className="w-4 h-4" />
         </Button>
+        </div>
       </div>
 
       <div
@@ -139,6 +148,7 @@ export default function ChatBot(props: ChatProps ) {
         style={{ 
           backgroundColor: "white" 
         }}>
+          <SessionHistory />
         <Chat
           suggestions={defaultConfig.defaultSuggestions.map((suggestion) => suggestion.name)}
           className="grow"
