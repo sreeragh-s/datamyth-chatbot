@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useChat, type UseChatOptions } from "ai/react"
 import { Chat } from "@/components/ui/chat"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { History, PlusIcon } from "lucide-react"
 import { Button } from "./button"
+import { SessionHistory } from "./SessionHistory"
 
 
 type ChatProps = {
@@ -21,6 +22,7 @@ type ChatProps = {
 
 
 export default function ChatBot(props: ChatProps ) {
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
   const {
     messages,
@@ -38,6 +40,23 @@ export default function ChatBot(props: ChatProps ) {
       accountId: props.accountId,
       sessionId: props.session
     },
+    onResponse: async (response) => {
+      // Store the user's message
+      const userMessage = messages[messages.length - 1];
+      if (userMessage && userMessage.role === 'user') {
+        await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: props.session,
+            channelId: props.channelId,
+            messages: [userMessage]
+          }),
+        });
+      }
+    },
     onFinish: async (message) => {
       try {
         // Store the assistant's message
@@ -48,7 +67,8 @@ export default function ChatBot(props: ChatProps ) {
           },
           body: JSON.stringify({
             sessionId: props.session,
-            messages: [message] // This will be the assistant's message
+            channelId: props.channelId,
+            messages: [message]
           }),
         });
       } catch (error) {
@@ -70,8 +90,33 @@ export default function ChatBot(props: ChatProps ) {
   };
 
   const handleHistoryClick = () => {
-    console.log('History clicked');
-  };
+    setIsHistoryOpen(!isHistoryOpen)
+  }
+
+  const handleSessionSelect = async (selectedSessionId: string) => {
+    try {
+      // Load messages for the selected session
+      const response = await fetch(`/api/chat?sessionId=${selectedSessionId}`)
+      if (response.ok) {
+        const history = await response.json()
+        if (history && history.length > 0) {
+          console.log('Loading session messages:', history)
+          setMessages(history)
+        }
+      }
+      
+      // Update localStorage and parent window
+      window.parent.postMessage({
+        type: "REFRESH_SESSION",
+        sessionId: selectedSessionId
+      }, "*")
+      
+      // Close the history panel
+      setIsHistoryOpen(false)
+    } catch (error) {
+      console.error('Error loading session messages:', error)
+    }
+  }
 
   // Load chat history when component mounts
   useEffect(() => {
@@ -81,8 +126,10 @@ export default function ChatBot(props: ChatProps ) {
         console.log('Loading chat history for session:', props.session);
         if (response.ok) {
           const history = await response.json();
-          if (history && history.length > 0) {
-            setMessages(history);
+          if (history && Array.isArray(history)) {
+            console.log('Setting messages from history:', history);
+            // Ensure we're setting all messages, both user and assistant
+            setMessages(history.filter(msg => msg.role === 'user' || msg.role === 'assistant'));
           }
         }
       } catch (error) {
@@ -108,7 +155,7 @@ export default function ChatBot(props: ChatProps ) {
   const isDefaultWindow = defaultConfig.chatWindowColor === 'default'
 
   return (
-    <div className={`w-full h-full rounded-md mx-auto z-20`}>
+    <div className={`w-full h-full rounded-md mx-auto z-20 relative`}>
       <div
         className={`flex gap-4 rounded-t-md px-6 py-4 items-center border justify-between ${
           isDefaultHeader ? `border-b border-border` : 'border border-border'
@@ -142,24 +189,30 @@ export default function ChatBot(props: ChatProps ) {
       </div>
 
       <div
-        className={`border-l border-r border-b border-border h-full w-full rounded-b-md mx-auto p-6 flex ${
+        className={`border-l border-r border-b border-border h-full w-full rounded-b-md mx-auto p-6 flex relative ${
           isDefaultWindow ? 'white' : ''
         }`}
         style={{ 
           backgroundColor: "white" 
         }}>
-          <SessionHistory />
-        <Chat
-          suggestions={defaultConfig.defaultSuggestions.map((suggestion) => suggestion.name)}
-          className="grow"
-          messages={messages}
-          handleSubmit={handleSubmit}
-          input={input}
-          handleInputChange={handleInputChange}
-          isGenerating={isLoading}
-          stop={stop}
-          append={append}
-        />
+          
+          <SessionHistory 
+            channelId={props.channelId}
+            onSessionSelect={handleSessionSelect}
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+          />
+          <Chat
+            suggestions={defaultConfig.defaultSuggestions.map((suggestion) => suggestion.name)}
+            className="grow"
+            messages={messages}
+            handleSubmit={handleSubmit}
+            input={input}
+            handleInputChange={handleInputChange}
+            isGenerating={isLoading}
+            stop={stop}
+            append={append}
+          />
       </div>
     </div>
   )

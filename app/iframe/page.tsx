@@ -40,7 +40,7 @@ export default function ChatFrame() {
 
   useEffect(() => {
     postToParent({
-      width: isOpen ? 670 : 100,
+      width: isOpen ? 800 : 100,
       height: isOpen ? 800 : 100,
     })
   }, [isOpen])
@@ -49,7 +49,7 @@ export default function ChatFrame() {
     <div className="bg-transparent fixed bottom-4 right-4">
       {isOpen && (
         <div 
-          className="absolute bottom-40 right-0 w-[600px] h-[600px] rounded-lg "
+          className="absolute bottom-40 right-0 w-[400px] h-[600px] rounded-lg "
         >
  
       <div className="h-full">

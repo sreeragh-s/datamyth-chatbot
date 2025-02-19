@@ -13,27 +13,43 @@ export async function POST(req: Request) {
     const { messages, channelId, accountId, sessionId } = body
     const currentDate = new Date();
 
+    console.log("currentDate", currentDate) 
     if (sessionId) {
       console.log('Session ID:', sessionId);
       try {
-        // Ensure the message has a role field
-        const messageToStore = messages[messages.length - 1];
-        if (messageToStore && (messageToStore.role === 'user' || messageToStore.role === 'assistant')) {
-          await Conversation.findOneAndUpdate(
-            { sessionId },
-            { 
-              $push: { messages: messageToStore }, // Store the complete message object including role
-              $setOnInsert: { createdAt: new Date() },
-              $set: { updatedAt: new Date() }
-            },
-            { upsert: true }
-          );
+        // Store all messages in the current request
+        const messagesToStore = Array.isArray(messages) ? messages : [messages];
+        
+        for (const messageToStore of messagesToStore) {
+          if (messageToStore && (messageToStore.role === 'user' || messageToStore.role === 'assistant')) {
+            await Conversation.findOneAndUpdate(
+              { sessionId, channelId },
+              { 
+                $push: { messages: messageToStore },
+                $setOnInsert: { 
+                  createdAt: new Date(),
+                  channelId: channelId
+                },
+                $set: { 
+                  updatedAt: new Date()
+                }
+              },
+              { 
+                upsert: true,
+                new: true
+              }
+            );
+          }
         }
+
+        // Add debug logging
+        const conversation = await Conversation.findOne({ sessionId, channelId });
+        console.log('Current conversation state:', conversation);
+
       } catch (error) {
         console.error('Error storing message:', error);
-        return new Response('Internal Server Error', { status: 500 });
+        throw error;
       }
-      console.log('Message stored in MongoDB');
     }
 
     const result = streamText({
@@ -169,7 +185,10 @@ export async function GET(req: Request) {
     }
 
     const conversation = await Conversation.findOne(query);
-    return new Response(JSON.stringify(conversation?.messages || []), {
+    // Ensure we return the full messages array with both user and assistant messages
+    const messages = conversation?.messages || [];
+    console.log('Returning messages:', messages); // Debug log
+    return new Response(JSON.stringify(messages), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
@@ -177,16 +196,14 @@ export async function GET(req: Request) {
     return new Response('Internal Server Error', { status: 500 });
   }
 }
+  
+const SYSTEM_PROMPT = `
 
 
 
-const SYSTEM_PROMPT = `the current date is ${new Date().toISOString().split('T')[0]}
 You are a helpful AI assistant for a SaaS based reporting tool called DataMyth which analyses data from various digital marketing channels such as Google Analytics, Google Ads & Meta ads etc and provides performance insights in writing which helps users understand what is working & what is not. 
-
 You specialize in analyzing Google Analytics 4 (GA4) data and answering user queries strictly based on the provided dataset. Your primary objective is to help users extract insights, interpret trends, and understand their website performance using GA4 metrics & dimensions. You are adept at explaining complex data concepts in a clear and concise manner, tailored to the user's level of understanding. You are patient, helpful, and strive to provide accurate and actionable insights based on the provided data. Use comparison only when user prompts you to do so and startdate2 and enddate2 are optional based on requirement
-
 Important Guidelines:
-
 Only answer questions that are directly related to the GA4 dataset.
 If a user asks about general Google Analytics topics (e.g., "How does GA4 work?"), you may provide general explanations. 
 If a user asks unrelated questions (e.g., news, sports, general knowledge, coding help, personal advice), respond with: “Buddy is designed exclusively for Google Analytics 4 data analysis. Please provide relevant GA4 data-related queries."
@@ -201,14 +218,8 @@ If a user asks to store data or remember insights across sessions, respond:
 "For privacy reasons, I do not store any data.”
 Do not make speculative or predictive claims unless explicitly asked to use historical trends for estimation.
 Maintain a professional, neutral, and informative tone.
-Be polite and patient, even if the user asks the same question multiple times.’
-give a small insight about the infered data at the end of the answer.
-
-
-
-
+Be polite and patient, even if the user asks the same question multiple times.
 these are some other metrics and dimensions you can use to call the tool that is used for the analytics and use comparision only when user prompts you to do so and startdate2 and enddate2 are optional  based on requiremernt :
-
 
 metrics 
 
