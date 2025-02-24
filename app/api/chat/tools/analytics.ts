@@ -1,10 +1,10 @@
 import { tool } from "ai"
 import { z } from "zod"
 
-export const getAnalyticsTool = (accountId: string, channelId: string, currentDate: Date) => tool({
+export const getAnalyticsTool = (accountId: string, channelId: string, currentDate: Date, type: string) => tool({
   description: "Fetch analytics data from google analytics (GA4)",
   parameters: z.object({
-    type: z.enum(['GA4'])
+    type: z.enum([type])
       .default('GA4')
       .describe("The platform to fetch data from"),
     startDate: z.string()

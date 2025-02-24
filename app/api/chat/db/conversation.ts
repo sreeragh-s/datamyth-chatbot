@@ -1,6 +1,7 @@
 import { Conversation } from '@/app/models/conversation';
 
 export async function storeMessages(messages: any[], sessionId: string, channelId: string) {
+  console.log("Storing messages:", messages);
   const messagesToStore = Array.isArray(messages) ? messages : [messages];
   
   for (const messageToStore of messagesToStore) {
@@ -25,18 +26,14 @@ export async function storeMessages(messages: any[], sessionId: string, channelI
     }
   }
 
-  // Add debug logging
   const conversation = await Conversation.findOne({ sessionId, channelId });
   console.log('Current conversation state:', conversation);
   return conversation;
 }
 
-export async function getConversation(sessionId: string, channelId?: string) {
+export async function getConversation(sessionId: string) {
   const query = { sessionId };
-  if (channelId) {
-    Object.assign(query, { channelId });
-  }
-
-  const conversation = await Conversation.findOne(query);
+  const conversation = await Conversation.findOne(query)
+  ;
   return conversation?.messages || [];
 } 

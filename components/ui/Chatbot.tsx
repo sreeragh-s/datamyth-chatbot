@@ -12,7 +12,7 @@ import { SessionHistory } from "./SessionHistory"
 type ChatProps = {
   initialMessages?: UseChatOptions["initialMessages"],
   session: string
-  type: string
+  analyticsType: string
   channelId: string
   accountName: string
   propertyName: string
@@ -39,7 +39,7 @@ export default function ChatBot(props: ChatProps ) {
       channelId: props.channelId,
       accountId: props.accountId,
       sessionId: props.session,
-      type: props.type
+      type: props.analyticsType
     },
     onResponse: async (response) => {
       // Store the user's message

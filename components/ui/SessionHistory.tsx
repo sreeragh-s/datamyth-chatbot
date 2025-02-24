@@ -49,7 +49,7 @@ export function SessionHistory({ channelId, onSessionSelect, onRefreshSession }:
 
   return (
     <div className="absolute -left-[250px] w-64 -ml-100 h-[682px] rounded-bl-md rounded-tl-md bg-white border border-gray-200 -top-[82px] z-10">
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-[26px] border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Chat History</h2>
         </div>
@@ -76,7 +76,7 @@ export function SessionHistory({ channelId, onSessionSelect, onRefreshSession }:
               >
                 <div className="flex flex-col items-start my-2">
                   <span className="text-sm truncate">
-                    {(session.lastMessage?.content?.slice(0, 50)) || 'New Session'}
+                    {(session.lastMessage?.content?.slice(0, 30)+"...") || 'New Session'}
                   </span>
                   <span className="text-xs text-gray-500">
                     {formatDistanceToNow(new Date(session.updatedAt), { addSuffix: true })}

@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { Conversation } from "@/app/models/conversation";
+import { connectDB } from '@/lib/mongodb';
 import mongoose from "mongoose";
 
 export async function GET(request: Request) {
   try {
+    // Ensure DB connection is established first
+    await connectDB();
+
     const { searchParams } = new URL(request.url);
     const channelId = searchParams.get("channelId");
 
