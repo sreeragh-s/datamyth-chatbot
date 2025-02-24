@@ -38,7 +38,8 @@ export default function ChatBot(props: ChatProps ) {
     body: {
       channelId: props.channelId,
       accountId: props.accountId,
-      sessionId: props.session
+      sessionId: props.session,
+      type: props.type
     },
     onResponse: async (response) => {
       // Store the user's message
@@ -118,7 +119,6 @@ export default function ChatBot(props: ChatProps ) {
     }
   }
 
-  // Load chat history when component mounts
   useEffect(() => {
     const loadChatHistory = async () => {
       try {
@@ -128,7 +128,6 @@ export default function ChatBot(props: ChatProps ) {
           const history = await response.json();
           if (history && Array.isArray(history)) {
             console.log('Setting messages from history:', history);
-            // Ensure we're setting all messages, both user and assistant
             setMessages(history.filter(msg => msg.role === 'user' || msg.role === 'assistant'));
           }
         }
