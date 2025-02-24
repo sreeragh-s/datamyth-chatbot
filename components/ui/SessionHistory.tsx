@@ -18,12 +18,12 @@ interface Session {
 
 interface SessionHistoryProps {
   channelId: string
+  onRefreshSession: () => void
   onSessionSelect: (sessionId: string) => void
-  isOpen: boolean
-  onClose: () => void
 }
 
-export function SessionHistory({ channelId, onSessionSelect, isOpen, onClose }: SessionHistoryProps) {
+export function SessionHistory({ channelId, onSessionSelect, onRefreshSession }: SessionHistoryProps) {
+
   const [sessions, setSessions] = useState<Session[]>([])
   const [isLoading, setIsLoading] = useState(false)
   console.log("sessions", sessions)
@@ -44,25 +44,24 @@ export function SessionHistory({ channelId, onSessionSelect, isOpen, onClose }: 
       }
     }
 
-    if (isOpen) {
-      fetchSessions()
-    }
-  }, [channelId, isOpen])
-
-  if (!isOpen) return null
+    fetchSessions()
+  }, [channelId])
 
   return (
-    <div className="absolute -left-[250px] w-64 -ml-100 h-[682px] bg-white border border-gray-200 -top-[82px] z-10">
+    <div className="absolute -left-[250px] w-64 -ml-100 h-[682px] rounded-bl-md rounded-tl-md bg-white border border-gray-200 -top-[82px] z-10">
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Chat History</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            ✕
-          </Button>
         </div>
       </div>
-      <ScrollArea className="h-[calc(100%-60px)]">
+      <div className="w-64 p-2 flex justify-center items-center">
+            <Button className="w-full rounded-md" variant="outline" size="sm" onClick={onRefreshSession}>
+              New Chat
+            </Button>
+          </div>
+      <ScrollArea className="h-[calc(100%-150px)]">
         <div className="p-2">
+   
           {isLoading ? (
             <div className="flex justify-center items-center h-20 text-gray-500">
               Loading...

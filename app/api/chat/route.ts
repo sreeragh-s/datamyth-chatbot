@@ -4,6 +4,9 @@ import { connectDB } from '@/lib/mongodb'
 import { getAnalyticsTool } from './tools/analytics'
 import { storeMessages, getConversation } from './db/conversation'
 import { GA4_PROMPT } from './prompts/GA4-prompt'
+import { GOOGLE_SEARCH_CONSOLE_PROMPT } from './prompts/Google-search-console'
+import { NextResponse } from "next/server"
+
 export const maxDuration = 30
 
 export async function POST(req: Request) {
@@ -30,7 +33,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: type === 'GA4' ? GA4_PROMPT : ''
+          content: type === 'GA4' ? GA4_PROMPT : type === 'Google Search Console' ? GOOGLE_SEARCH_CONSOLE_PROMPT : ''
         },
         ...convertToCoreMessages(messages),
       ],
@@ -47,26 +50,30 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(request: Request) {
   try {
-    await connectDB();
-    
-    const { searchParams } = new URL(req.url);
-    const sessionId = searchParams.get('sessionId');
-    const channelId = searchParams.get('channelId');
+    const { searchParams } = new URL(request.url);
+    const sessionId = searchParams.get("sessionId");
 
-    if (!sessionId || !channelId) {
-      return new Response('Session ID and channel ID are required', { status: 400 });
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: "Session ID is required" },
+        { status: 400 }
+      );
     }
 
-    const messages = await getConversation(sessionId, channelId);
-    console.log('Returning messages:', messages); // Debug log
+    // Add debug logging
+    console.log("Fetching chat history for session:", sessionId);
     
-    return new Response(JSON.stringify(messages), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const messages = await getConversation(sessionId);
+    console.log("Retrieved messages:", messages);
+
+    return NextResponse.json(messages);
   } catch (error) {
-    console.error('Error fetching chat history:', error);
-    return new Response('Internal Server Error', { status: 500 });
+    console.error("Error fetching chat history:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

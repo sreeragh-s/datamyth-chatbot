@@ -177,14 +177,14 @@ export default function ChatBot(props: ChatProps ) {
           {defaultConfig.chatbotName}
         </h1>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
         <Button variant="outline" size="icon" onClick={handleHistoryClick}>  
             <History className="w-4 h-4" />
         </Button>
         <Button variant="outline" size="icon" onClick={handleRefreshSession}>  
             <PlusIcon className="w-4 h-4" />
         </Button>
-        </div>
+        </div> */}
       </div>
 
       <div
@@ -196,10 +196,9 @@ export default function ChatBot(props: ChatProps ) {
         }}>
           
           <SessionHistory 
+            onRefreshSession={handleRefreshSession}
             channelId={props.channelId}
             onSessionSelect={handleSessionSelect}
-            isOpen={isHistoryOpen}
-            onClose={() => setIsHistoryOpen(false)}
           />
           <Chat
             suggestions={defaultConfig.defaultSuggestions.map((suggestion) => suggestion.name)}
