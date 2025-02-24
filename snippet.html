@@ -47,7 +47,7 @@
             border: none;
             right: 20px;
         }`)
-        iframe.src = "http://localhost:3001/iframe"
+        iframe.src = "http://localhost:3000/iframe"
         iframe.classList.add("data-myth")
         document.body.append(iframe)
         console.log('Iframe added to document body');
@@ -59,7 +59,7 @@
                 return;
             }
 
-            if (e.origin !== "http://localhost:3001") {
+            if (e.origin !== "http://localhost:3000") {
                 console.log('Message origin not allowed:', e.origin);
                 return;
             }
@@ -81,7 +81,7 @@
                     property_name,
                     domain: window.location.origin
                 };
-                iframe.contentWindow.postMessage(messageData, "http://localhost:3001");
+                iframe.contentWindow.postMessage(messageData, "http://localhost:3000");
                 return;
             }
 
@@ -107,7 +107,7 @@
                 domain: window.location.origin
             };
             console.log('Sending postMessage to iframe:', messageData);
-            iframe.contentWindow.postMessage(messageData, "http://localhost:3001")
+            iframe.contentWindow.postMessage(messageData, "http://localhost:3000")
         })
 
         </script>
