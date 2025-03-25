@@ -32,8 +32,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const analyticsType = "Google Search Console"
-
+    const analyticsType = type
+    console.log("analyticsType", analyticsType)
     const result = streamText({
       model: google('gemini-1.5-flash'),
       messages: [
@@ -49,13 +49,13 @@ export async function POST(req: Request) {
       },
     })
 
+    console.log("result", result)
     return result.toDataStreamResponse()
   } catch (error) {
     console.error('API route error:', error);
     return new Response('Internal Server Error', { status: 500 });
   }
 }
-
 export async function GET(request: Request) {
   try {
     await connectDB();
@@ -69,7 +69,6 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
-    console.log("Fetching chat history for session:", sessionId);
     
     const messages = await getConversation(sessionId);
     console.log("Retrieved messages:", messages);

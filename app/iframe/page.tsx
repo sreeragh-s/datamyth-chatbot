@@ -26,7 +26,7 @@ export default function ChatFrame() {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === "INIT") {
         setSessionId(event.data.sessionId)
-        setType(event.data.type)
+        setType(event.data.analyticsType)
         setChannelId(event.data.channel_id)
         setAccountId(event.data.account_id)
         setAccountName(event.data.account_name)
@@ -56,7 +56,7 @@ export default function ChatFrame() {
             {sessionId && type && channelId && accountId && accountName && propertyName  && (
               <ChatBot 
                 session={sessionId} 
-                type={type} 
+                analyticsType={type} 
                 channelId={channelId} 
                 accountId={accountId} 
                 accountName={accountName} 

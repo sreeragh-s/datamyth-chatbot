@@ -2,10 +2,9 @@ import { tool } from "ai"
 import { z } from "zod"
 
 export const getAnalyticsTool = (accountId: string, channelId: string, currentDate: Date, type: string) => tool({
-  description: "Fetch analytics data from google analytics (GA4)",
+  description: `Fetch analytics data from ${type}`,
   parameters: z.object({
     type: z.enum([type])
-      .default('GA4')
       .describe("The platform to fetch data from"),
     startDate: z.string()
       .default(`${currentDate}`)
@@ -50,6 +49,7 @@ export const getAnalyticsTool = (accountId: string, channelId: string, currentDa
       dimensions
     }));
 
+    console.log("type", type, "accountId", accountId, "channelId", channelId, "startDate", startDate, "endDate", endDate, "startDate2", startDate2, "endDate2", endDate2, "metrics", metrics, "dimensions", dimensions)
     const response = await fetch('https://api.datamyth.com/api/chat/data2', {
       method: 'POST',
       headers: {
@@ -68,6 +68,8 @@ export const getAnalyticsTool = (accountId: string, channelId: string, currentDa
         dimensions
       }),
     });
+
+    console.log("response", response)
     
     console.log('Analytics API Response Status:', response.status);
     

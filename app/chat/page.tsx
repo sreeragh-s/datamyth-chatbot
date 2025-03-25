@@ -10,6 +10,6 @@ const accountId = "421612556"
 
 export default function ChatBotPage() {
   return <div className="w-480px h-700px">
-    <ChatBot session={session} type={type} channelId={channelId} accountName={accountName} propertyName={propertyName} accountId={accountId} />
+    <ChatBot session={session} analyticsType={type} channelId={channelId} accountName={accountName} propertyName={propertyName} accountId={accountId} />
     </div>
 }
