@@ -86,7 +86,7 @@ export function ChannelAccountSelector({ integrationData, onSelectIntegration }:
     setOpen(false);
   };
 
-  return (
+  return ( 
     <div className="w-full max-w-3xl mx-auto">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

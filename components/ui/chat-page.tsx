@@ -30,15 +30,12 @@ type ChatProps = {
 
 export default function ChatBot(props: ChatProps) {
   const integrationData = props.integrationData;
-  if (integrationData.length === 0) {
-    return <div>No integration data found</div>;
-  }
-
+  
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [channelId, setChannelId] = useState(integrationData[0].channel_id);
-  const [accountId, setAccountId] = useState(integrationData[0].account_id);
+  const [channelId, setChannelId] = useState(integrationData[0]?.channel_id);
+  const [accountId, setAccountId] = useState(integrationData[0]?.account_id);
   const [session, setSession] = useState("cf_" + Math.random().toString(36).substr(2, 9));
-  const [analyticsType, setAnalyticsType] = useState(integrationData[0].type);
+  const [analyticsType, setAnalyticsType] = useState(integrationData[0]?.type);
 
   const {
     messages,
@@ -92,11 +89,37 @@ export default function ChatBot(props: ChatProps) {
     },
   });
 
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const response = await fetch(`/api/chat?sessionId=${session}`);
+        console.log("Loading chat history for session:", session);
+        if (response.ok) {
+          const history = await response.json();
+          if (history && Array.isArray(history)) {
+            console.log("Setting messages from history:", history);
+            setMessages(
+              history.filter(
+                (msg) => msg.role === "user" || msg.role === "assistant"
+              )
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error loading chat history:", error);
+      }
+    };
+
+    loadChatHistory();
+  }, [session, setMessages]);
+
+  if (integrationData.length === 0) {
+    return <div>No integration data found</div>;
+  }
+
   const handleRefreshSession = () => {
     const newSessionId = "cf_" + Math.random().toString(36).substr(2, 9);
-    // Clear the chat messages
     setMessages([]);
-    // Post message to parent window to update session
     window.parent.postMessage(
       {
         type: "REFRESH_SESSION",
@@ -115,7 +138,7 @@ export default function ChatBot(props: ChatProps) {
         if (history && history.length > 0) {
           console.log("Loading session messages:", history);
           setMessages(history);
-        }
+        } 
       }
 
       // Update localStorage and parent window
@@ -146,30 +169,6 @@ export default function ChatBot(props: ChatProps) {
 
 
 
-  useEffect(() => {
-    const loadChatHistory = async () => {
-      try {
-        const response = await fetch(`/api/chat?sessionId=${session}`);
-        console.log("Loading chat history for session:", session);
-        if (response.ok) {
-          const history = await response.json();
-          if (history && Array.isArray(history)) {
-            console.log("Setting messages from history:", history);
-            setMessages(
-              history.filter(
-                (msg) => msg.role === "user" || msg.role === "assistant"
-              )
-            );
-          }
-        }
-      } catch (error) {
-        console.error("Error loading chat history:", error);
-      }
-    };
-
-    loadChatHistory();
-  }, [session, setMessages]);
-
   const defaultConfig = {
     headerBgColor: "default",
     chatWindowColor: "default",
@@ -177,7 +176,7 @@ export default function ChatBot(props: ChatProps) {
     avatarIcon:
       "https://www.datamyth.com/wp-content/uploads/2021/05/Header-Logo.png",
     defaultSuggestions: [
-      { name: "What is the Google Analytics?" },
+      { name: "What is  Google Analytics?" },
       { name: "What is Facebook ad insights?" },
     ],
   };
