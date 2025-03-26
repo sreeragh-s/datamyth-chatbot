@@ -45,7 +45,6 @@ export default function ChatPageFrame() {
 
     window.addEventListener("message", handleMessage);
 
-    // Signal to parent that frame is ready
     window.parent.postMessage({ type: "FRAME_READY" }, "*");
 
     return () => window.removeEventListener("message", handleMessage);
@@ -54,7 +53,7 @@ export default function ChatPageFrame() {
   console.log(integrationData);
 ;
   return (
-    <div className="bg-transparent fixed w-full h-full">
+    <div className="bg-transparent fixed w-full h-[calc(100vh-120px)] flex flex-col">
       <ChatBot integrationData={integrationData} />
     </div>
   );

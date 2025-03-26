@@ -21,6 +21,7 @@ import { SelectTrigger } from "./select";
 import { SelectItem } from "@radix-ui/react-select";
 import { Select } from "@radix-ui/react-select";
 import { SelectContent } from "./select";
+import { ChannelAccountSelector } from "@/components/channel-account-selector";
 
 type ChatProps = {
   initialMessages?: UseChatOptions["initialMessages"];
@@ -34,13 +35,9 @@ export default function ChatBot(props: ChatProps) {
   }
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [channelId, setChannelId] = useState(
-    integrationData[0].channel_id
-  );
-  const [accountId, setAccountId] = useState(
-    integrationData[0].account_id
-  );
-  const [session, setSession] = useState(integrationData[0].session_id);
+  const [channelId, setChannelId] = useState(integrationData[0].channel_id);
+  const [accountId, setAccountId] = useState(integrationData[0].account_id);
+  const [session, setSession] = useState("cf_" + Math.random().toString(36).substr(2, 9));
   const [analyticsType, setAnalyticsType] = useState(integrationData[0].type);
 
   const {
@@ -137,16 +134,13 @@ export default function ChatBot(props: ChatProps) {
     }
   };
 
-  const handleSelectDatabase = (selectedDatabase: string) => {
-    const selectedIntegration = integrationData.find(
-      (integration) => integration.id === selectedDatabase
-    );
-    if (selectedIntegration) {
-      setChannelId(selectedIntegration.channel_id);
-      setAccountId(selectedIntegration.account_id);
-      setSession(selectedIntegration.session_id);
-      setAnalyticsType(selectedIntegration.type);
-    }
+  const handleSelectIntegration = (integration: any) => {
+    const newSessionId = "cf_" + Math.random().toString(36).substr(2, 9);
+    setSession(newSessionId);
+    setChannelId(integration.channel_id);
+    setAccountId(integration.account_id);
+    setAnalyticsType(integration.type);
+    setMessages([]);
   };
   
 
@@ -194,7 +188,7 @@ export default function ChatBot(props: ChatProps) {
   return (
     <div className={`w-full h-full rounded-md mx-auto z-20 relative`}>
       <div
-        className={`flex gap-4 rounded-t-md px-6 py-4 items-center border justify-between ${
+        className={`flex gap-4 rounded-t-md  items-center border justify-between ${
           isDefaultHeader ? `border-b border-border` : "border border-border"
         }`}
         style={{
@@ -204,50 +198,11 @@ export default function ChatBot(props: ChatProps) {
         }}
       >
         <div className="flex items-center gap-2">
-          <div>
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink href="#">Databases</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <Select defaultValue={integrationData[0].id}>
-                    <SelectTrigger
-                      onClick={() => {
-                        console.log(integrationData);
-                      }}
-                      id="select-database"
-                      className="relative gap-2 ps-9"
-                      aria-label="Select database"
-                    >
-                      <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 group-has-[select[disabled]]:opacity-50">
-                        <DatabaseIcon size={16} aria-hidden="true" />
-                      </div>
-                      <SelectValue placeholder="Select database" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {integrationData.map((integration) => (
-                        <SelectItem key={integration.id} value={integration.id}>
-                          { integration.account_id}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </BreadcrumbItem>
-
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
+          <ChannelAccountSelector 
+            integrationData={integrationData}
+            onSelectIntegration={handleSelectIntegration}
+          />
         </div>
-        {/* <div className="flex gap-2">
-        <Button variant="outline" size="icon" onClick={handleHistoryClick}>  
-            <History className="w-4 h-4" />
-        </Button>
-        <Button variant="outline" size="icon" onClick={handleRefreshSession}>  
-            <PlusIcon className="w-4 h-4" />
-        </Button>
-        </div> */}
       </div>
 
       <div
@@ -264,10 +219,10 @@ export default function ChatBot(props: ChatProps) {
           onSessionSelect={handleSessionSelect}
         />
         <Chat
+        className="p-5"
           suggestions={defaultConfig.defaultSuggestions.map(
             (suggestion) => suggestion.name
           )}
-          className="grow"
           messages={messages}
           handleSubmit={handleSubmit}
           input={input}
